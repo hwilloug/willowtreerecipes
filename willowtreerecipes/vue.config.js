@@ -1,10 +1,7 @@
+const configureAPI = require('..server/configure')
+
 module.exports = {
-	devServer: {
-		proxy: {
-			"http://localhost:1337/"
-		}
-	    headers: {
-			"Access-Control-Allow-Origin": "*"
-	    }
-	}
+    devServer: {
+		before: configureAPI
+    }
 }
