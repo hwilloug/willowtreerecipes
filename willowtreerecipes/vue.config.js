@@ -1,4 +1,4 @@
-const configureAPI = require('..server/configure')
+const configureAPI = require('../server/configure')
 
 module.exports = {
     devServer: {
