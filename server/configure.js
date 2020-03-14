@@ -1,11 +1,14 @@
 const bodyParser = require('body-parser')
-//const moragn = require('morgan')
+const morgan = require('morgan')
 const cors = require('cors')
 const api = require('./src/api')
+const recipes = require('./src/recipes')
 
 module.exports = app => {
 	app.use(bodyParser.json())
-	//app.use(morgan('tiny'));
+	app.use(morgan('tiny'));
 	app.use(cors());
-	app.use('/api', api)
+	
+	app.use('/api', api);
+	app.use('/api/recipes', recipes);
 }
