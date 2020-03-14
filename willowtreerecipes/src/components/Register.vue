@@ -23,8 +23,8 @@ import AuthenticationService from '@/services/AuthenticationService'
 export default {
 	data () {
 		return {
-			email: '',
-			password: ''
+			email: 'test@example.com',
+			password: 'asdfasdf123'
 		}
 	},
 	methods: {
