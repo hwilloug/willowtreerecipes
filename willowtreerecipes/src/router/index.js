@@ -1,8 +1,5 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import Register from '@/components/Register.vue'
-import Recipes from '@/components/Recipes.vue'
 
 Vue.use(VueRouter)
 
@@ -10,7 +7,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: () => import('../views/Home.vue')
   },
   {
     path: '/about',
@@ -23,12 +20,22 @@ const routes = [
   {
 	path:'/register',
 	name: 'Register',
-	component: Register
+	component: () => import ('@/components/Register.vue')
   },
   {
     path: '/recipes',
     name: 'Recipes',
-    component: Recipes
+    component: () => import('@/components/Recipes.vue')
+  },
+  {
+    path: '/recipes/:recipeID',
+    name: 'RecipeEntry',
+    component: () => import('@/components/RecipeEntry.vue')
+  },
+  {
+    path: '/404',
+    name: '404',
+    component: () => import('@/views/PageNotFound.vue')
   }
 ]
 
