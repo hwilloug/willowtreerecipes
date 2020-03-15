@@ -2,12 +2,14 @@
 <div>
 	<h1>{{ recipe.name }}</h1>
 	<p>{{ recipe.description }}</p>
+	<button @click='back'>Back</button>
 </div>
 </template>
 
 
 <script>
 import Recipes from '@/services/Recipes'
+import router from '@/router/index'
 
 export default {
 	props: ['recipeID'],
@@ -34,11 +36,18 @@ export default {
 					console.log('Error: ', error.message);
 				}
 			});
+	},
+	methods: {
+		back: () => {
+			router.push('/recipes');
+		}
 	}
 }
 </script>
 
 
 <style scoped>
-
+button {
+	cursor: pointer;
+}
 </style>

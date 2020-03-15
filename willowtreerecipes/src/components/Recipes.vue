@@ -51,21 +51,19 @@
 	
 #all-recipes th, td {
 	border: 1px solid lightgrey;
+	padding: 15px;
 }	
 
 #all-recipes {
 	border-collapse: collapse;
 }
 
-#all-recipes th, td {
-	padding: 15px;
-}
-
 #all-recipes th {
 	background-color: plum;
 }
 
-#all-recipes tr:hover {
+#recipe-entry:hover {
 	background-color: linen;
+	cursor: pointer;
 }
 </style>
