@@ -9,11 +9,20 @@ const db = mysql.createConnection({
 	user: 'wtr',
 	password: '12345',
 	database: 'recipedb'
-})
+});
 db.connect()
 
 recipes.get('/', (req, res, next) => {
-	db.query('SELECT * FROM recipes', (error, results, fields) => {
+	db.query(`SELECT * FROM recipes;`,
+		(error, results, fields) => {
+			res.send(results)
+		})
+})
+
+recipes.get('/:recipeID', (req, res, next) => {
+	db.query(`SELECT * FROM recipes
+		WHERE id=${req.params.recipeID};`,
+	(error, results, fields) => {
 		res.send(results)
 	})
 })
