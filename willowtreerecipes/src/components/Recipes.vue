@@ -28,7 +28,6 @@
 
 <script>
 	import Recipes from '@/services/Recipes'
-	//import RecipesTableEntries from './Recipes-Table-Entries'
 
 	export default {
 	data() {
@@ -36,10 +35,7 @@
 			allRecipes: [	]
 		}
 	},
-	//components: { 
-	//	RecipesTableEntries
-	//},
-  mounted () {
+  created () {
     Recipes.loadRecipes().then( response => {
       this.allRecipes = response.data;
     })
@@ -49,10 +45,13 @@
 
 <style scoped>
 	
-#all-recipes {
+#all-recipes th, td {
 	border: 1px solid lightgrey;
-	border-collapse: collapse;
 }	
+
+#all-recipes {
+	border-collapse: collapse;
+}
 
 #all-recipes th, td {
 	padding: 15px;
