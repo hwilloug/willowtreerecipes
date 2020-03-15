@@ -9,25 +9,21 @@
 				<th>Time to Complete</th>
 				<th>Date Created</th>
 			</tr>
-			<tr 
+			<RecipesTableEntries
 				id='recipe-entry'
 				v-for='recipe in allRecipes'
 				:key='recipe.id'
-				:recipe='recipe'
-			>
-				<td>{{ recipe.name }}</td>
-				<td>{{ recipe.description }}</td>
-				<td>{{ recipe.difficulty }}</td>
-				<td>{{ recipe.time }}</td>
-				<td>{{ recipe.creation_date }}</td>
-			</tr>
+				:recipeEntry='recipe'
+				@click.native='routeToEntry(recipe.id)'
+			></RecipesTableEntries>
 		</table>
 	</div>
 </template>
 
-
 <script>
 	import Recipes from '@/services/Recipes'
+	import RecipesTableEntries from './RecipesTableEntries.vue'
+	import router from '@/router/index'
 
 	export default {
 	data() {
@@ -35,15 +31,23 @@
 			allRecipes: [	]
 		}
 	},
+	components: {
+		RecipesTableEntries
+	},
   created () {
     Recipes.loadRecipes().then( response => {
       this.allRecipes = response.data;
     })
-  }
+  },
+	methods: {
+		routeToEntry: (recipeID) => {
+			router.push(`/recipes/${recipeID}`);
+		}
+	}
 }
 </script>
 
-<style scoped>
+<style>
 	
 #all-recipes th, td {
 	border: 1px solid lightgrey;
