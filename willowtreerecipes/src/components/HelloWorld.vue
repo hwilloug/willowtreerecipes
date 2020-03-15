@@ -4,7 +4,7 @@
 		<h3>Links to pages:</h3>
 		<ul>
 			<li><a href="http://localhost:8080/register">Register</a></li>
-			<li></li>
+			<li><a href='http://localhost:8080/recipes'>Recipes</a></li>
 		</ul>
 	</div>
 </template>
