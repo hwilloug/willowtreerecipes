@@ -1,5 +1,9 @@
 import Api from '@/services/Api'
 
+/*
+	API for the recipes database
+*/
+
 export default {
 	// Loads all recipes from the database
 	loadRecipes () {
@@ -9,6 +13,10 @@ export default {
 	// Loads a specific recipe from the database
 	loadRecipeEntry (recipeID) {
 		return Api().get(`/recipes/${recipeID}`);
-	}
+	},
+
+	loadRecipeSteps (recipeID) {
+		return Api().get(`/recipes/${recipeID}/steps`);
+	},
 }
 

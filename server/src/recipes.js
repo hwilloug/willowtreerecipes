@@ -25,7 +25,19 @@ recipes.get('/:recipeID', (req, res, next) => {
 	db.query(`SELECT * FROM recipes
 		WHERE id=${req.params.recipeID};`,
 	(error, results, fields) => {
-		console.log(results)
+		if (results.length < 1) res.status(404).send();
+		else res.send(results);
+	})
+})
+
+// Get the steps for a recipe
+recipes.get('/:recipeID/steps', (req, res, next) => {
+	db.query(`
+		SELECT step_number, instructions
+		FROM steps
+		WHERE recipeID = ${req.params.recipeID}
+		ORDER BY step_number;`,
+	(error, results, fields) => {
 		if (results.length < 1) res.status(404).send();
 		else res.send(results);
 	})
