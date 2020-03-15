@@ -2,6 +2,14 @@
 <div>
 	<h1>{{ recipe.name }}</h1>
 	<p>{{ recipe.description }}</p>
+	<ol>
+		<li
+			id='instructions'
+			v-for='step in steps'
+			:key='step.id'
+		>{{ step.instructions }}</li>
+	</ol>
+
 	<button @click='back'>Back</button>
 </div>
 </template>
@@ -15,10 +23,12 @@ export default {
 	props: ['recipeID'],
 	data () {
 		return {
-			recipe: {}
+			recipe: {},
+			steps: []
 		}
 	},
 	created () {
+		// Load recipe entry
 		Recipes.loadRecipeEntry(this.recipeID)
 			.then( response => {
 				this.recipe = response.data[0];
@@ -36,6 +46,18 @@ export default {
 					console.log('Error: ', error.message);
 				}
 			});
+		
+		// Load recipe steps
+		Recipes.loadRecipeSteps(this.recipeID)
+			.then (response => {
+				this.steps = response.data;
+			})
+			.catch((e) => {
+				if (e.response) {
+					if (e.response.status) console.log('No steps found for this recipe')
+				} else if (e.request) console.log(e.request);
+				else console.log(e.message);
+			})
 	},
 	methods: {
 		back: () => {
