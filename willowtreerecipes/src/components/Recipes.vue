@@ -16,7 +16,7 @@ export default {
 	},
 	mounted () {
 		Recipes.loadRecipes().then( response => {
-			this.message = response.data.message;
+			this.data = response.data;
 		})
 	}
 }
