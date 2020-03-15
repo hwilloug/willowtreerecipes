@@ -16,7 +16,6 @@ recipes.get('/', (req, res, next) => {
 	db.query('SELECT * FROM recipes', (error, results, fields) => {
 		res.send(results)
 	})
-	//res.send({message: `This is the recipes page!`})
 })
 
 module.exports = recipes;
