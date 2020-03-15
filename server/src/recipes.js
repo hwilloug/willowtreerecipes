@@ -12,6 +12,7 @@ const db = mysql.createConnection({
 });
 db.connect()
 
+// Get all entries from recipes table
 recipes.get('/', (req, res, next) => {
 	db.query(`SELECT * FROM recipes;`,
 		(error, results, fields) => {
@@ -19,11 +20,14 @@ recipes.get('/', (req, res, next) => {
 		})
 })
 
+// Get entry from recipes table with recipeID
 recipes.get('/:recipeID', (req, res, next) => {
 	db.query(`SELECT * FROM recipes
 		WHERE id=${req.params.recipeID};`,
 	(error, results, fields) => {
-		res.send(results)
+		console.log(results)
+		if (results.length < 1) res.status(404).send();
+		else res.send(results);
 	})
 })
 
