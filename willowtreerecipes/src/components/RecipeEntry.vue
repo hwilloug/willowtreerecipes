@@ -2,6 +2,15 @@
 <div>
 	<h1>{{ recipe.name }}</h1>
 	<p>{{ recipe.description }}</p>
+	<hr class='solid'>
+	<ul>
+		<li
+			id='ingredients'
+			v-for='ingredient in ingredients'
+			:key='ingredient.ingredient'
+		>{{ ingredient.amount }} {{ ingredient.ingredient }}</li>
+	</ul>
+	<hr class='solid'>
 	<ol>
 		<li
 			id='instructions'
@@ -24,7 +33,8 @@ export default {
 	data () {
 		return {
 			recipe: {},
-			steps: []
+			steps: [],
+			ingredients: []
 		}
 	},
 	created () {
@@ -57,7 +67,18 @@ export default {
 					if (e.response.status) console.log('No steps found for this recipe')
 				} else if (e.request) console.log(e.request);
 				else console.log(e.message);
+			});
+
+		Recipes.loadRecipeIngredients(this.recipeID)
+			.then (response => {
+				this.ingredients = response.data;
 			})
+			.catch((e) => {
+			if (e.response) {
+				if (e.response.status) console.log('No ingredients found for this recipe')
+			} else if (e.request) console.log(e.request);
+			else console.log(e.message);
+			});
 	},
 	methods: {
 		back: () => {
@@ -71,5 +92,9 @@ export default {
 <style scoped>
 button {
 	cursor: pointer;
+}
+
+hr.solid {
+	border-top: 1px solid darkgrey;
 }
 </style>
