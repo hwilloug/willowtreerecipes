@@ -43,4 +43,19 @@ recipes.get('/:recipeID/steps', (req, res, next) => {
 	})
 })
 
+// Get the ingredients for a recipe by step
+recipes.get('/:recipeID/ingredients', (req, res, next) => {
+	db.query(`
+		SELECT ingredients.ingredient_name AS ingredient, 
+			ingredients_steps.amount AS amount,
+			steps.step_number FROM ingredients_steps
+		JOIN ingredients ON ingredients_steps.ingredientID = ingredients.ingredientID
+		JOIN steps ON steps.stepID = ingredients_steps.stepID
+		WHERE ingredients_steps.recipeID = ${req.params.recipeID};`,
+	(error, results, fields) => {
+		if (results.length < 1) res.status(404).send();
+		else res.send(results);
+	})
+})
+
 module.exports = recipes;

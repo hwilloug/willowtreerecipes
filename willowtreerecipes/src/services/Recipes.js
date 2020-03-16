@@ -18,5 +18,9 @@ export default {
 	loadRecipeSteps (recipeID) {
 		return Api().get(`/recipes/${recipeID}/steps`);
 	},
+
+	loadRecipeIngredients (recipeID) {
+		return Api().get(`/recipes/${recipeID}/ingredients`);
+	},
 }
 
