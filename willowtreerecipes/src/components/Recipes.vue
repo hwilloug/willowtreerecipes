@@ -17,6 +17,8 @@
 				@click.native='routeToEntry(recipe.id)'
 			></RecipesTableEntries>
 		</table>
+		<br>
+		<button @click='addRecipe'>Add Recipe</button>
 	</div>
 </template>
 
@@ -42,6 +44,9 @@
 	methods: {
 		routeToEntry: (recipeID) => {
 			router.push(`/recipes/${recipeID}`);
+		},
+		addRecipe: () => {
+			router.push('new-recipe')
 		}
 	}
 }
@@ -66,4 +71,10 @@
 	background-color: linen;
 	cursor: pointer;
 }
+
+button {
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
 </style>
