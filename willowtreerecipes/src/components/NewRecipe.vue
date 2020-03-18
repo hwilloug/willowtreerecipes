@@ -1,12 +1,12 @@
 <template>
 <div>
 	<h1>New Recipe</h1>
-	<form>
+	<form @submit.prevent='submitRecipe'>
 	<label for='recipeName'>Name </label><br>
-	<input type='text' id='recipeName' name='recipeName' class='input' maxlength='100' required /><br><br>
+	<input type='text' id='recipeName' name='recipeName' v-model='name' class='input' maxlength='100' required /><br><br>
 	
 	<label for='difficulty'>Difficulty </label><br>
-	<select id='difficulty' name='difficulty' class='select'>
+	<select id='difficulty' name='difficulty' v-model='difficulty' class='select'>
 		<option value='Easy'>Easy</option>
 		<option value='Medium'>Medium</option>
 		<option value='Hard'>Hard</option>
@@ -14,7 +14,7 @@
 	</select><br><br>
 	
 	<label for='time'>Time to Make </label><br>
-	<select id='time' name='time' class='select'>
+	<select id='time' name='time' v-model='time' class='select'>
 		<option value='Negligible'>Negligible</option>
 		<option value='Short'>Short</option>
 		<option value='Medium'>Medium</option>
@@ -23,24 +23,14 @@
 	</select><br><br>
 
 	<label for='description'>Description </label><br>
-	<textarea id='description' name='description' maxlength='500' class='area'></textarea><br><br>
-	
-	<label for='ingredients1'>Ingredients </label><br>
-	<textarea id='ingredients1' name='ingredients1' maxlength='20' class='area' required ></textarea><br><br>
+	<textarea id='description' name='description' v-model='description' maxlength='500' class='area'></textarea><br><br>
 
-	<label for='ingredients'>Ingredients</label><br>
-	<DynamicField list='ingredients' class='input'
-		id ='ingredients'
-		v-for='ingredient in ingredients'
-		:key='ingredient'
-		:model='ingredient'
-		:field='ingredient'
-	></DynamicField><br>
+	<!-- I don't like this but it will have to do -->	
+	<label for='ingredients'>Ingredients<br><i>Please put each ingredient on a new row.<br>ingredient_name, amount, step_number</i></label><br>
+	<textarea id='ingredients' name='ingredients' v-model='ingredients' class='area' required ></textarea><br><br>
 
-	<button type='button' @click='addField'>Add Ingredient</button><br>
-
-	<label for='steps'>Steps </label><br>
-	<textarea id='steps' name='steps' maxlength='200' class='area' required></textarea><br><br>
+	<label for='steps'>Steps<br><i>Please put each step on a new row.</i></label><br>
+	<textarea id='steps' name='steps' v-model='steps' maxlength='200' class='area' required></textarea><br><br>
 	
 	<button type='submit' class='button'>Add Recipe</button>
 	</form>
@@ -48,21 +38,31 @@
 </template>
 
 <script>
-import DynamicField from '@/components/DynamicField'
+import Recipes from '@/services/Recipes'
 
 export default {
 	data () {
 		return {
-			ingredients: []
+			name: '',
+			difficulty: '',
+			time: '',
+			description: '',
+			ingredients: '',
+			steps: ''
 		}
 	},
-	components: {
-		DynamicField
-	},
 	methods: {
-		addField() {
-			this.ingredients.push({'': ''});
-			console.log(this.ingredients)
+		submitRecipe() {
+			Recipes.postNewRecipe(
+				this.name,
+				this.difficulty,
+				this.time,
+				this.description,
+				this.ingredients,
+				this.steps
+			)
+			console.log('Submitted')
+			this.$router.push('/recipes')
 		}
 	}
 }
