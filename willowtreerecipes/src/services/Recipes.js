@@ -15,14 +15,17 @@ export default {
 		return Api().get(`/recipes/${recipeID}`);
 	},
 
+	// Loads the steps for a specific recipe from the database
 	loadRecipeSteps (recipeID) {
 		return Api().get(`/recipes/${recipeID}/steps`);
 	},
 
+	// Loads the ingredients for a specific recipe from the database
 	loadRecipeIngredients (recipeID) {
 		return Api().get(`/recipes/${recipeID}/ingredients`);
 	},
 
+	// Posts a new recipe
 	postNewRecipe (name, difficulty, time, description, ingredients, steps) {
 		
 		// Parse ingredients
@@ -45,11 +48,30 @@ export default {
 			difficulty: difficulty,
 			time: time,
 			description: description,
-			ingredients: ingredientsArray,
-			steps: steps
 		}).then((resp) => {
-			console.log(resp)
+			return postSteps(resp.data.insertId, steps);
+		}).then((resp) => {
+			console.log('Im trying to post to the ingredients schema');
+			console.log(resp);
+			for (let i=0; i<ingredientsArray.length; i++) {
+				Api().post(`/recipes/${resp}/steps/${ingredientsArray[i].step}/ingredients`, {
+					ingredient_name: ingredientsArray[i].ingredient_name,
+					amount: ingredientsArray[i].amount
+				}).then((resp) => console.log(resp));
+			}
 		})
 	},
 }
 
+function postSteps(recipeID, stepsArray) {
+	return new Promise ( (resolve, reject) => {
+		for (let s=0; s<stepsArray.length; s++) {
+			Api().post(`/recipes/${recipeID}/steps`, {
+				step_number: s+1,
+				instructions: stepsArray[s]
+			}).then((resp) => console.log(`Posted step ${resp.data.insertId}`));
+		}
+		if (!recipeID) reject('recipeID is not defined');
+		resolve(recipeID);
+	})
+}
