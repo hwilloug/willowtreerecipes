@@ -80,8 +80,11 @@ recipes.post('/', (req, res, next) => {
 			'${req.body.description}'
 		);
 	`, (error, results, fields) => {
-		console.log(`Added recipe id ${results.insertId}`);
-		res.send(results);
+		if (error) res.status().send(error);
+		else {
+			console.log(`Added recipe id ${results.insertId}`);	
+			res.send(results);
+		}
 	})
 })
 
@@ -110,8 +113,12 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 			req.body.ingredient_name,
 			req.body.amount
 		)
-	console.log(result);
-	res.send(result);
+	if (result[0] && result[1]) res.status(400).send(result[1])
+	else if (result[0] && !result[1]) res.status(404).send()
+	else {
+		console.log(result[1]);
+		res.send(result[1]);
+	}
 })
 
 //db.end((err) => {if (err) console.log(err)});
@@ -120,13 +127,13 @@ function ingredientCheck(ingredient_name) {
 	return new Promise( (resolve, reject) => {
 		db.query(`
 			SELECT * FROM ingredients
-			WHERE ingredient_name = '${req.body.ingredient_name}';
+			WHERE ingredient_name = '${ingredient_name}';
 		`, (error, results, fields) => {
 			if (results.length < 1) {
 				// If not, add and get new ingredientID
 				db.query(`
 					INSERT INTO ingredients (ingredient_name) VALUES (
-						'${req.body.ingredient_name}'
+						'${ingredient_name}'
 					);
 				`, (error, results, fields) => {
 					if (error) reject(error);
@@ -153,8 +160,18 @@ async function insertIngredient(recipeID, stepNumber, ingredient_name, amount) {
 		WHERE steps.recipeID = ${recipeID}
 		AND steps.step_number = ${stepNumber};
 	`, (error, results, fields) => {
-		console.log('New Recipe Created with ID: ${results.insertId}')
-		return results
+		if (error) {
+			console.log('There was an error inserting into ingredients_steps...')
+			return [1, error];
+		}
+		else if (results.insertId.length <1) {
+			console.log('Couldnt insert the steps ingredient');
+			return [1, '']
+		}
+		else {
+			console.log('New Recipe Created with ID: ${results.insertId}')
+			return [0, results]
+		}
 	})
 }
 
