@@ -1,8 +1,16 @@
 <template>
 <div>
+	<button @click='back'>Back to All Recipes</button>
 	<h1>{{ recipe.name }}</h1>
-	<p>{{ recipe.description }}</p>
+	<div class='description'>
+		<p><b>Time to complete: </b>{{ recipe.time }}</p>
+		<p><b>Difficulty: </b>{{ recipe.difficulty }}</p>
+		<p><b>Description: </b>{{ recipe.description }}</p>
+	</div>
 	<hr class='solid'>
+	<div class='recipe-info'>
+	<aside class='left'>
+	<h4>Ingredients</h4>
 	<ul>
 		<li
 			id='ingredients'
@@ -10,7 +18,9 @@
 			:key='ingredient.ingredient'
 		>{{ ingredient.amount }} {{ ingredient.ingredient }}</li>
 	</ul>
-	<hr class='solid'>
+	</aside>
+	<section>
+	<h4>Directions</h4>
 	<ol>
 		<li
 			id='instructions'
@@ -18,8 +28,13 @@
 			:key='step.id'
 		>{{ step.instructions }}</li>
 	</ol>
+	</section>
+	</div>
 
-	<button @click='back'>Back</button>
+	<aside class='other-recipes'>
+		<h5>Other recpipes you may like:</h5>
+		<!-- TODO maybe include a couple random recipes here (new component?) -->
+	</aside>
 </div>
 </template>
 
@@ -92,9 +107,42 @@ export default {
 <style scoped>
 button {
 	cursor: pointer;
+	float: right;
+	margin: 10px;
 }
 
 hr.solid {
 	border-top: 1px solid darkgrey;
+}
+
+li {
+	padding: 10px;
+}
+
+.description {
+	background-color: lavender;
+	padding: 10px;
+}
+
+.left {
+	flex-grow: 1;
+	padding: 10px;
+	background-color: lightblue;
+}
+
+.other-recipes {
+	background-color: lightpink;
+	padding: 10px;
+}
+
+section {
+	flex-grow: 5;
+	background-color: lightgreen;
+	padding: 10px;
+}
+
+.recipe-info {
+	display: flex;
+	flex-direction: row;
 }
 </style>

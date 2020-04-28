@@ -38,7 +38,7 @@
 	},
   created () {
     Recipes.loadRecipes().then( response => {
-      this.allRecipes = response.data;
+			this.allRecipes = response.data;
     })
   },
 	methods: {
