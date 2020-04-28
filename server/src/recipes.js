@@ -106,7 +106,6 @@ recipes.post('/:recipeID/steps', (req, res, next) => {
 })
 
 // Ingredients tables
-// TODO: Add handling to the promise here
 recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 	insertIngredient(
 			req.params.recipeID, 
@@ -114,7 +113,6 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 			req.body.ingredient_name,
 			req.body.amount
 	).then((resp) => {
-		console.log(resp);
 		res.send(resp);
 	}).catch((err) => {
 		if (err) res.status(400).send(err);
@@ -138,18 +136,14 @@ function ingredientCheck(ingredient_name) {
 					);
 				`, (error, results, fields) => {
 					if (error) {
-						console.log('There was an error inserting into the ingredients table')
 						reject(error);
 					}
 					else {
-						console.log('New ingredient inserted');
 						resolve(results.insertId)
 					}
 				})
 			} else {
 				// If yes, get ingredient
-				console.log('Ingredient already in DB!')
-				console.log(results[0].ingredientID)
 				resolve(results[0].ingredientID);
 			}
 		})
@@ -170,18 +164,9 @@ async function insertIngredient(recipeID, stepNumber, ingredient_name, amount) {
 			WHERE steps.recipeID = ${recipeID}
 			AND steps.step_number = ${stepNumber};
 		`, (error, results, fields) => {
-			if (error) {
-				console.log('There was an error inserting into ingredients_steps...')
-				reject(error);
-			}
-			else if (results.insertId.length <1) {
-				console.log('Couldnt insert the steps ingredient');
-				reject('');
-			}
-			else {
-				console.log('New Recipe Created with ID: ${results.insertId}')
-				resolve(results);
-			}
+			if (error) reject(error);
+			else if (results.insertId.length <1) reject('');
+			else resolve(results);
 		})
 	})
 }
