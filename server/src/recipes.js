@@ -80,7 +80,7 @@ recipes.post('/', (req, res, next) => {
 			'${req.body.description}'
 		);
 	`, (error, results, fields) => {
-		if (error) res.status().send(error);
+		if (error) res.status(400).send(error);
 		else {
 			console.log(`Added recipe id ${results.insertId}`);	
 			res.send(results);
