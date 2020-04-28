@@ -49,10 +49,25 @@ export default {
 			time: time,
 			description: description,
 		}).then((resp) => {
-			return postSteps(resp.data.insertId, steps);
+			return new Promise ( (resolve, reject) => {
+				let steps_added = 0;
+				for (let s=0; s<steps.length; s++) {
+					Api().post(`/recipes/${resp.data.insertId}/steps`, {
+						step_number: s+1,
+						instructions: steps[s]
+					}).then(() => {
+						steps_added++
+						console.log('steps added:' + steps_added);
+						if (!resp.data.insertId) reject('recipeID is not defined');
+						if (steps_added == steps.length) {
+							console.log('All steps added');
+							resolve(resp.data.insertId);
+						}
+					})
+				}
+			})
 		}).then((resp) => {
-			console.log('Im trying to post to the ingredients schema');
-			console.log(resp);
+			console.log('steps response: ' + resp);
 			for (let i=0; i<ingredientsArray.length; i++) {
 				Api().post(`/recipes/${resp}/steps/${ingredientsArray[i].step}/ingredients`, {
 					ingredient_name: ingredientsArray[i].ingredient_name,
@@ -63,15 +78,3 @@ export default {
 	},
 }
 
-function postSteps(recipeID, stepsArray) {
-	return new Promise ( (resolve, reject) => {
-		for (let s=0; s<stepsArray.length; s++) {
-			Api().post(`/recipes/${recipeID}/steps`, {
-				step_number: s+1,
-				instructions: stepsArray[s]
-			}).then((resp) => console.log(`Posted step ${resp.data.insertId}`));
-		}
-		if (!recipeID) reject('recipeID is not defined');
-		resolve(recipeID);
-	})
-}
