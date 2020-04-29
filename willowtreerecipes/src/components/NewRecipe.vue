@@ -47,6 +47,7 @@
 import Recipes from '@/services/Recipes'
 
 export default {
+	name: 'NewRecipe',
 	data () {
 		return {
 			name: '',

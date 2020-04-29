@@ -57,17 +57,14 @@ export default {
 						instructions: steps[s]
 					}).then(() => {
 						steps_added++
-						console.log('steps added:' + steps_added);
 						if (!resp.data.insertId) reject('recipeID is not defined');
 						if (steps_added == steps.length) {
-							console.log('All steps added');
 							resolve(resp.data.insertId);
 						}
 					})
 				}
 			})
 		}).then((resp) => {
-			console.log('steps response: ' + resp);
 			for (let i=0; i<ingredientsArray.length; i++) {
 				Api().post(`/recipes/${resp}/steps/${ingredientsArray[i].step}/ingredients`, {
 					ingredient_name: ingredientsArray[i].ingredient_name,

@@ -44,6 +44,7 @@ import Recipes from '@/services/Recipes'
 import router from '@/router/index'
 
 export default {
+	name: 'RecipePage',
 	props: ['recipeID'],
 	data () {
 		return {

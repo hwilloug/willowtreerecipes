@@ -17,3 +17,7 @@
 		}	
 	}
 </script>
+
+<style>
+	@import "general-style.css";
+</style>

@@ -25,18 +25,18 @@ const routes = [
   {
     path: '/recipes',
     name: 'Recipes',
-    component: () => import('@/components/Recipes.vue')
+    component: () => import('@/views/Recipes.vue')
   },
   {
     path: '/recipes/:recipeID',
-    name: 'RecipeEntry',
+    name: 'RecipePage',
     props: true,
-    component: () => import('@/components/RecipeEntry.vue')
+    component: () => import('@/views/RecipePage.vue')
   },
   {
     path: '/new-recipe',
     name: 'AddRecipe',
-    component: () => import('@/components/NewRecipe.vue')
+    component: () => import('@/views/NewRecipe.vue')
   },
   {
     path: '/404',

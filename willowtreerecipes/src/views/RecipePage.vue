@@ -1,19 +1,20 @@
 <template>
   <div class="home">
     <Navigation/>
-		<RecipesTable/>
+		<RecipePage :recipeID='recipeID' />
   </div>
 </template>
 
 <script>
 	import Navigation from '@/components/Navigation.vue'
-	import RecipesTable from '@/components/Recipes.vue'
+	import RecipePage from '@/components/RecipeEntry.vue'
 
 	export default {
 		name: 'Home',
+		props: ['recipeID'],
 		components: {
 			Navigation,
-			RecipesTable
+			RecipePage
 		}	
 	}
 </script>

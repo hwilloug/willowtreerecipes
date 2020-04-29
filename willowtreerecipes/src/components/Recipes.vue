@@ -58,13 +58,12 @@
 <style>
 	
 #all-recipes th, td {
-	border: 1px solid #869D7A;
 	padding: 15px;
 }	
 
 .recipes-table {
-	display: flex;
-	justify-content: center;
+	width: 80%;
+	margin: auto;
 }
 
 #all-recipes {
@@ -76,12 +75,15 @@
 	color: #EFE5FB;
 }
 
-#all-recipes td {
+#recipe-entry {
 	border: 1px solid #E1D4B1;
 	color: #8B5D33;
+	background-color: white;
+	word-wrap: normal;
 }
 
 #recipe-entry:hover {
+	border: 1px solid #E1D4B1;
 	background-color: #E1D4B1;
 	cursor: pointer;
 }
