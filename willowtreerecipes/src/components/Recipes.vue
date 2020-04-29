@@ -30,6 +30,7 @@
 	import router from '@/router/index'
 
 	export default {
+	name: 'RecipesTable',
 	data() {
 		return {
 			allRecipes: [	]
