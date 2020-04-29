@@ -74,10 +74,10 @@ recipes.get('/:recipeID/ingredients', (req, res, next) => {
 recipes.post('/', (req, res, next) => {	
 	db.query(`
 		INSERT INTO recipes (name, difficulty, time, description) VALUES (
-			'${req.body.name}',
-			'${req.body.difficulty}',
-			'${req.body.time}',
-			'${req.body.description}'
+			"${req.body.name}",
+			"${req.body.difficulty}",
+			"${req.body.time}",
+			"${req.body.description}"
 		);
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
@@ -92,9 +92,9 @@ recipes.post('/', (req, res, next) => {
 recipes.post('/:recipeID/steps', (req, res, next) => {
 	db.query(`
 		INSERT INTO steps (recipeID, step_number, instructions) VALUES (
-			'${req.params.recipeID}',
-			'${req.body.step_number}',
-			'${req.body.instructions}'
+			"${req.params.recipeID}",
+			"${req.body.step_number}",
+			"${req.body.instructions}"
 		);
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
@@ -113,6 +113,7 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 			req.body.ingredient_name,
 			req.body.amount
 	).then((resp) => {
+		console.log(`Linked ${req.body.ingredient_name} to step ${req.params.stepNumber}.`);
 		res.send(resp);
 	}).catch((err) => {
 		if (err) res.status(400).send(err);
@@ -120,30 +121,30 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 	})
 })
 
-//db.end((err) => {if (err) console.log(err)});
-
 function ingredientCheck(ingredient_name) {
 	return new Promise( (resolve, reject) => {
 		db.query(`
 			SELECT * FROM ingredients
-			WHERE ingredient_name = '${ingredient_name}';
+			WHERE ingredient_name = "${ingredient_name}";
 		`, (error, results, fields) => {
 			if (results.length < 1) {
 				// If not, add and get new ingredientID
 				db.query(`
 					INSERT INTO ingredients (ingredient_name) VALUES (
-						'${ingredient_name}'
+						"${ingredient_name}"
 					);
 				`, (error, results, fields) => {
 					if (error) {
 						reject(error);
 					}
 					else {
+						console.log(`Inserted new ingredient: ${ingredient_name}`)
 						resolve(results.insertId)
 					}
 				})
 			} else {
 				// If yes, get ingredient
+				console.log(`Got ingredient ID for ${ingredient_name}: ${results[0].ingredientID}`)
 				resolve(results[0].ingredientID);
 			}
 		})
@@ -159,14 +160,20 @@ async function insertIngredient(recipeID, stepNumber, ingredient_name, amount) {
 				${recipeID},
 				steps.stepID,
 				${ingredientID},
-				'${amount}'
+				"${amount}"
 			FROM steps
 			WHERE steps.recipeID = ${recipeID}
 			AND steps.step_number = ${stepNumber};
 		`, (error, results, fields) => {
-			if (error) reject(error);
+			if (error) {
+				console.log('')
+				reject(error);
+			}
 			else if (results.insertId.length <1) reject('');
-			else resolve(results);
+			else {
+				console.log(`Inserted successfully into ingredients_steps`);
+				resolve(results);
+			}
 		})
 	})
 }
