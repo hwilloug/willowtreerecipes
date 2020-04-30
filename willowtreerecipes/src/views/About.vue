@@ -1,5 +1,17 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+		<Navigation/>
+    <h2>This is an about page</h2>
   </div>
 </template>
+
+<script>
+	import Navigation from '@/components/Navigation.vue'
+
+	export default {
+		name: 'About',
+		components: {
+			Navigation,
+		}
+	}
+</script>
