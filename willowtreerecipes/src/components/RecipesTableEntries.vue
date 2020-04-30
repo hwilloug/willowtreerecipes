@@ -4,7 +4,7 @@
 		<td>{{ recipe.description }}</td>
 		<td>{{ recipe.difficulty }}</td>
 		<td>{{ recipe.time }}</td>
-		<td>{{ recipe.creation_date }}</td>
+		<td>{{ new Date(recipe.creation_date).toLocaleString() }}</td>
 	</tr>
 </template>
 

@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<button @click='addRecipe'>Add Recipe</button>
-		<h1>Recipes :)</h1>
+		<h2>Recipes :)</h2>
 		<div class='recipes-table'>
 			<table id='all-recipes'>
 				<tr>

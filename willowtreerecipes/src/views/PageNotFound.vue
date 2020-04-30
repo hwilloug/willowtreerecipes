@@ -1,5 +1,6 @@
 <template>
 	<div>
+		<Navigation/>
 		<h1>404 NOT FOUND</h1>
 		<button @click='back'>Back</button>
 	</div>
@@ -8,15 +9,19 @@
 
 <script>
 import router from '@/router/index'
+import Navigation from '@/components/Navigation.vue'
 
 export default {
+	components: {
+		Navigation
+	},
 	methods: {
 		back: () => router.push('/recipes')
 	}
 }
 </script>
 
-
-<style scoped>
-
+<style>
+  @import "general-style.css"; 
 </style>
+

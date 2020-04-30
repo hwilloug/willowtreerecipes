@@ -1,11 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Hind+Madurai:wght@300;400;700&family=Lato&display=swap');
 
 body {
-	background-color: #EFE5FB;
+	margin: 0px;
+	padding: 0px;
+	background-color: #FFFBFF;
 	font-family: Lato, Helvetica, sans-serif; 
+}
+
+.header {
+	background-color: #869D7A;
+	padding: 10px;
 }
 
 h1 {
 	font-family: Hind Madurai, Helvetica, sans-serif;
-	color: #8B5D33;
+	color: #E1D4B1;
+}
+
+h2 {
+	font-family: Hind Madurai, Helvetica, sans-serif;
+	color: #AA8D6D;
+}
+
+.button {
+	
 }

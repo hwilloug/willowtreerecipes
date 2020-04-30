@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <Navigation/>
-		<RecipePage :recipeID='recipeID' />
+		<RecipePage class="body" :recipeID='recipeID' />
   </div>
 </template>
 

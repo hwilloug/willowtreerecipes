@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <Navigation/>
-		<NewRecipe/>
+		<NewRecipe class="body"/>
   </div>
 </template>
 
