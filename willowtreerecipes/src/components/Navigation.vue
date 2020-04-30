@@ -1,11 +1,11 @@
 <template>
 <div class='header'>
-	<h1 class='title'>Willowtree Recipes</h1>
+	<h1 class='title' @click='home'>Willowtree Recipes</h1>
 	<nav class='nav'>
 		<ul>
-			<li @click='home' :class='{active: activeHome}'>Home</li>
-			<li @click='recipes' :class='{active: activeRecipes}'>Recipes</li>
-			<li @click='about' :class='{active: activeAbout}'>About</li>
+			<li @click='home' id='nav-item' :class='{active: activeHome}'>Home</li>
+			<li @click='recipes' id='nav-item' :class='{active: activeRecipes}'>Recipes</li>
+			<li @click='about' id='nav-item' :class='{active: activeAbout}'>About</li>
 		</ul>	
 	</nav>
 </div>
@@ -23,13 +23,13 @@ export default {
 	},
 	methods: {
 		home() {
-			this.$route.name == 'Home' ? console.log('Already home') : this.$router.push('/');
+			this.$route.name == 'Home' ? '' : this.$router.push('/');
 		},
 		recipes() {
-			this.$route.name=='Recipes' ? console.log('Already on recipes') : this.$router.push('recipes');
+			this.$route.name=='Recipes' ? '' : this.$router.push('/recipes');
 		},
 		about() {
-			this.$route.name=='About' ? console.log('Already at about') : this.$router.push('about');
+			this.$route.name=='About' ? '' : this.$router.push('/about');
 		}
 	},
 	mounted() {
@@ -50,6 +50,7 @@ export default {
 
 .title {
 	flex-grow: 4;
+	cursor: pointer;
 }
 
 .nav {
@@ -64,12 +65,18 @@ export default {
 }
 
 .nav li {
-	padding: 10px;
+	padding: 10px 15px;
+	margin-left: 20px; 
+	color: #E1D4B1;
+	cursor: pointer;
 }
 
-.active {
-	color: white;
-	font-weight: bold;
+#nav-item.active {
+	background-color: #BBE1C3;
+	color: #8B5D33;
+	font-weight: 700;
+	border: 2px inset #AA8D6D;
+	border-radius: 5px;
 }
 
 </style>
