@@ -70,7 +70,6 @@ export default {
 	font-weight: bold;
 	padding: 10px 15px;
 	margin-left: 20px; 
-	color: #E1D4B1;
 	cursor: pointer;
 }
 
