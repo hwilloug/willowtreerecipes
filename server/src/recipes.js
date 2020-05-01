@@ -15,6 +15,9 @@ db.connect((err) =>{
 	else console.log('You are now connected to the recipes database!')
 })
 
+//-----------------------------------------------Checkin if stuff is there
+
+
 //---------------------------------------------Gettin stuff
 
 // Get all entries from recipes table
@@ -106,76 +109,80 @@ recipes.post('/:recipeID/steps', (req, res, next) => {
 })
 
 // Ingredients tables
-recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
-	insertIngredient(
-			req.params.recipeID, 
-			req.params.stepNumber,
-			req.body.ingredient_name,
-			req.body.amount
-	).then((resp) => {
-		console.log(`Linked ${req.body.ingredient_name} to step ${req.params.stepNumber}.`);
-		res.send(resp);
-	}).catch((err) => {
-		if (err) res.status(400).send(err);
-		else res.status(404).send();
-	})
-})
-
-function ingredientCheck(ingredient_name) {
-	return new Promise( (resolve, reject) => {
+// Check if method is post, and if yes, check if the ingredient is in the ingredient table
+// Return the ingredient ID
+recipes.use('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
+	if (req.method=='POST') {
 		db.query(`
 			SELECT * FROM ingredients
-			WHERE ingredient_name = "${ingredient_name}";
+			WHERE ingredient_name = "${req.body.ingredient_name}";
 		`, (error, results, fields) => {
-			if (results.length < 1) {
+			if (error) res.status(400).send(error);
+			else if (results.length < 1) {
 				// If not, add and get new ingredientID
 				db.query(`
 					INSERT INTO ingredients (ingredient_name) VALUES (
-						"${ingredient_name}"
+						"${req.body.ingredient_name}"
 					);
 				`, (error, results, fields) => {
-					if (error) {
-						reject(error);
-					}
+					if (error) res.status(400).send(error);
 					else {
 						console.log(`Inserted new ingredient: ${ingredient_name}`)
-						resolve(results.insertId)
+						const ingredientID = results.insertId;
+						next();
 					}
 				})
 			} else {
 				// If yes, get ingredient
 				console.log(`Got ingredient ID for ${ingredient_name}: ${results[0].ingredientID}`)
-				resolve(results[0].ingredientID);
+				const ingredientID = results[0].ingredientID;
+				next();
 			}
 		})
-	})
-}
+	}	
+})
 
-async function insertIngredient(recipeID, stepNumber, ingredient_name, amount) {
-	const ingredientID = await ingredientCheck(ingredient_name);
-	return new Promise( (resolve, reject) => {
-		db.query(`
-			INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
-			SELECT 
-				${recipeID},
-				steps.stepID,
-				${ingredientID},
-				"${amount}"
-			FROM steps
-			WHERE steps.recipeID = ${recipeID}
-			AND steps.step_number = ${stepNumber};
-		`, (error, results, fields) => {
-			if (error) {
-				console.log('')
-				reject(error);
-			}
-			else if (results.insertId.length <1) reject('');
-			else {
-				console.log(`Inserted successfully into ingredients_steps`);
-				resolve(results);
-			}
-		})
+recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
+	db.query(`
+		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
+		SELECT 
+			${req.params.recipeID},
+			steps.stepID,
+			${ingredientID},
+			"${amount}"
+		FROM steps
+		WHERE steps.recipeID = ${req.params.recipeID}
+		AND steps.step_number = ${req.params.stepNumber};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else if (results.insertId.length <1) res.status(400).send('');
+		else {
+			console.log(`Inserted successfully into ingredients_steps`);
+			res.send(results);
+		}
 	})
-}
+})
 
-module.exports = recipes;
+//--------------------------------------------------Deleting Stuff
+recipes.delete('/:recipeID', (req, res, next) => {
+	db.query(`
+		DELETE FROM recipes WHERE id=${req.params.recipeID};
+	`)
+})
+
+recipes.delete('/:recipeID/steps/', (req, res, next) => {
+	db.query(`
+		DELETE FROM steps WHERE recipeID=${req.params.recipeID};
+	`)
+})
+
+recipes.delete(':recipeID/ingredients', (req, res, next) => {
+	db.query(`
+		DELETE FROM ingredients_steps WHERE recipeID=${req.params.recipeID};
+	`)
+})
+
+
+//----------------------------------------------------Updating Stuff
+
+module.exports = recipes;	
