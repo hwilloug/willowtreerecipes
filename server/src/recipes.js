@@ -93,6 +93,7 @@ recipes.post('/', (req, res, next) => {
 
 // Steps table
 recipes.post('/:recipeID/steps', (req, res, next) => {
+	// Add handling for an array of dictionaries
 	db.query(`
 		INSERT INTO steps (recipeID, step_number, instructions) VALUES (
 			"${req.params.recipeID}",
@@ -112,6 +113,8 @@ recipes.post('/:recipeID/steps', (req, res, next) => {
 // Check if method is post, and if yes, check if the ingredient is in the ingredient table
 // Return the ingredient ID
 recipes.use('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
+	// Change the url to /:recipeID/ingredients
+	// Add handling for multiple ingredients
 	if (req.method=='POST') {
 		db.query(`
 			SELECT * FROM ingredients
@@ -127,15 +130,13 @@ recipes.use('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 				`, (error, results, fields) => {
 					if (error) res.status(400).send(error);
 					else {
-						console.log(`Inserted new ingredient: ${ingredient_name}`)
-						const ingredientID = results.insertId;
+						res.locals.ingredientID = results.insertId;
 						next();
 					}
 				})
 			} else {
 				// If yes, get ingredient
-				console.log(`Got ingredient ID for ${ingredient_name}: ${results[0].ingredientID}`)
-				const ingredientID = results[0].ingredientID;
+				res.locals.ingredientID = results[0].ingredientID;
 				next();
 			}
 		})
@@ -143,13 +144,15 @@ recipes.use('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 })
 
 recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
+	// Change url to /:recipeID/ingredients and just add step to the payload
+	// Add handling for multiple ingredients
 	db.query(`
-		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
+		INSERT INTO ingredients_steps (recipOBeID, stepID, ingredientID, amount)
 		SELECT 
 			${req.params.recipeID},
 			steps.stepID,
-			${ingredientID},
-			"${amount}"
+			${res.locals.ingredientID},
+			"${req.body.amount}"
 		FROM steps
 		WHERE steps.recipeID = ${req.params.recipeID}
 		AND steps.step_number = ${req.params.stepNumber};
@@ -157,30 +160,37 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 		if (error) res.status(400).send(error);
 		else if (results.insertId.length <1) res.status(400).send('');
 		else {
-			console.log(`Inserted successfully into ingredients_steps`);
 			res.send(results);
 		}
 	})
 })
 
 //--------------------------------------------------Deleting Stuff
+//- - - - - - - - - - - > Delete a recipe
+
+recipes.use('/:recipeID', (req, res, next) => {
+	if (req.method == 'DELETE') {
+		db.query(`
+			DELETE FROM ingredients_steps WHERE recipeID=${req.params.recipeID};
+		`).then(() => next());
+	}
+})
+
+recipes.use('/:recipeID/', (req, res, next) => {
+	if (req.method == 'DELETE') {
+		db.query(`
+			DELETE FROM steps WHERE recipeID=${req.params.recipeID};
+		`).then(() => next());
+	}
+})
+
 recipes.delete('/:recipeID', (req, res, next) => {
 	db.query(`
 		DELETE FROM recipes WHERE id=${req.params.recipeID};
 	`)
 })
 
-recipes.delete('/:recipeID/steps/', (req, res, next) => {
-	db.query(`
-		DELETE FROM steps WHERE recipeID=${req.params.recipeID};
-	`)
-})
 
-recipes.delete(':recipeID/ingredients', (req, res, next) => {
-	db.query(`
-		DELETE FROM ingredients_steps WHERE recipeID=${req.params.recipeID};
-	`)
-})
 
 
 //----------------------------------------------------Updating Stuff
