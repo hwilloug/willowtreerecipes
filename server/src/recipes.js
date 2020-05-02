@@ -43,7 +43,7 @@ recipes.get('/:recipeID', (req, res, next) => {
 // Get the steps for a recipe
 recipes.get('/:recipeID/steps', (req, res, next) => {
 	db.query(`
-		SELECT step_number, instructions
+		SELECT stepID, step_number, instructions
 		FROM steps
 		WHERE recipeID = ${req.params.recipeID}
 		ORDER BY step_number;`,
@@ -57,13 +57,15 @@ recipes.get('/:recipeID/steps', (req, res, next) => {
 // Get the ingredients for a recipe
 recipes.get('/:recipeID/ingredients', (req, res, next) => {
 	db.query(`
-		SELECT ingredients.ingredient_name AS ingredient, 
+		SELECT ingredients_steps.ingredients_stepsID,
+			ingredients.ingredient_name AS ingredient, 
 			ingredients_steps.amount AS amount,
 			steps.step_number 
 		FROM ingredients_steps
 		JOIN ingredients ON ingredients_steps.ingredientID = ingredients.ingredientID
 		JOIN steps ON steps.stepID = ingredients_steps.stepID
-		WHERE ingredients_steps.recipeID = ${req.params.recipeID};`,
+		WHERE ingredients_steps.recipeID = ${req.params.recipeID}
+		;`,
 	(error, results, fields) => {
 		if (error) res.status(400).send(error);
 		else if (results.length < 1) res.status(404).send();
@@ -166,31 +168,70 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 })
 
 //--------------------------------------------------Deleting Stuff
+//What does fields contain?
+// DELETE helper middleware
+function deleteAllIngredients (req, res, next) {
+	db.query(`
+		DELETE FROM ingredients_steps WHERE recipeID=${req.params.recipeID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else next();
+	})
+}
+
+function deleteAllSteps (req, res, next) {
+	db.query(`
+		DELETE FROM steps WHERE recipeID=${req.params.recipeID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else next();
+	})
+}
+
+function deleteIngredientsFromStep (req, res, next) {
+	db.query(`
+		DELETE FROM recipes_steps
+		WHERE recipeID=${req.params.recipeID}
+			AND stepID=${req.params.stepID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else next();
+	})
+}
+
 //- - - - - - - - - - - > Delete a recipe
-
-recipes.use('/:recipeID', (req, res, next) => {
-	if (req.method == 'DELETE') {
-		db.query(`
-			DELETE FROM ingredients_steps WHERE recipeID=${req.params.recipeID};
-		`).then(() => next());
-	}
-})
-
-recipes.use('/:recipeID/', (req, res, next) => {
-	if (req.method == 'DELETE') {
-		db.query(`
-			DELETE FROM steps WHERE recipeID=${req.params.recipeID};
-		`).then(() => next());
-	}
-})
-
-recipes.delete('/:recipeID', (req, res, next) => {
+recipes.delete('/:recipeID', [deleteAllIngredients, deleteAllSteps], (req, res, next) => {
 	db.query(`
 		DELETE FROM recipes WHERE id=${req.params.recipeID};
-	`)
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else res.send(results);
+	})
 })
 
+//- - - - - - - - - - - -> Delete an ingredient
+recipes.delete('/:recipeID/ingredient/:ingredientID', (req, res, next) => {
+	db.query(`
+		DELETE FROM ingredients_steps
+		WHERE recipeID=${req.params.recipeID}
+			AND ingredientID=${req.params.ingredientID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else res.send(results);
+	})
+})
 
+//- - - - - - - - - - - -> Delete a step
+recipes.delete('/:recipeID/steps/:stepID', [deleteIngredientsFromStep], (req, res, next) => {
+	db.query(`
+		DELETE FROM steps
+		WHERE recipeID=${req.params.recipeID}
+			AND stepID=${req.params.stepID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else next();
+	})
+})
 
 
 //----------------------------------------------------Updating Stuff
