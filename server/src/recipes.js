@@ -149,7 +149,7 @@ recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
 	// Change url to /:recipeID/ingredients and just add step to the payload
 	// Add handling for multiple ingredients
 	db.query(`
-		INSERT INTO ingredients_steps (recipOBeID, stepID, ingredientID, amount)
+		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
 		SELECT 
 			${req.params.recipeID},
 			steps.stepID,
@@ -190,12 +190,14 @@ function deleteAllSteps (req, res, next) {
 
 function deleteIngredientsFromStep (req, res, next) {
 	db.query(`
-		DELETE FROM recipes_steps
+		DELETE FROM ingredients_steps
 		WHERE recipeID=${req.params.recipeID}
 			AND stepID=${req.params.stepID};
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
-		else next();
+		else {
+			next();
+		}
 	})
 }
 
@@ -210,11 +212,11 @@ recipes.delete('/:recipeID', [deleteAllIngredients, deleteAllSteps], (req, res, 
 })
 
 //- - - - - - - - - - - -> Delete an ingredient
-recipes.delete('/:recipeID/ingredient/:ingredientID', (req, res, next) => {
+recipes.delete('/:recipeID/ingredients/:ingredientID', (req, res, next) => {
 	db.query(`
 		DELETE FROM ingredients_steps
 		WHERE recipeID=${req.params.recipeID}
-			AND ingredientID=${req.params.ingredientID};
+			AND ingredients_stepsID=${req.params.ingredientID};
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
 		else res.send(results);
@@ -229,7 +231,7 @@ recipes.delete('/:recipeID/steps/:stepID', [deleteIngredientsFromStep], (req, re
 			AND stepID=${req.params.stepID};
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
-		else next();
+		else res.send(results);
 	})
 })
 
