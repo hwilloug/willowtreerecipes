@@ -16,8 +16,24 @@ db.connect((err) =>{
 })
 
 //-----------------------------------------------Checkin if stuff is there
+// Validate payload for put and post requests
 
 
+// Get IDs when needed
+recipes.use('/:recipeID/steps/:stepNumber', (req, res, next) => {
+	db.query(`
+		SELECT stepID FROM steps
+		WHERE recipeID=${req.params.recipeID}
+			AND step_number=${req.params.stepNumber}; 
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else if (results.length < 1) res.status(404).send("Could not find the requested recipe's step.")
+		else {
+			res.locals.stepID = results[0].stepID;
+			next();
+		}
+	})
+})
 //---------------------------------------------Gettin stuff
 
 // Get all entries from recipes table
@@ -43,7 +59,7 @@ recipes.get('/:recipeID', (req, res, next) => {
 // Get the steps for a recipe
 recipes.get('/:recipeID/steps', (req, res, next) => {
 	db.query(`
-		SELECT stepID, step_number, instructions
+		SELECT step_number, instructions
 		FROM steps
 		WHERE recipeID = ${req.params.recipeID}
 		ORDER BY step_number;`,
@@ -57,8 +73,7 @@ recipes.get('/:recipeID/steps', (req, res, next) => {
 // Get the ingredients for a recipe
 recipes.get('/:recipeID/ingredients', (req, res, next) => {
 	db.query(`
-		SELECT ingredients_steps.ingredients_stepsID,
-			ingredients.ingredient_name AS ingredient, 
+		SELECT ingredients.ingredient_name AS ingredient, 
 			ingredients_steps.amount AS amount,
 			steps.step_number 
 		FROM ingredients_steps
@@ -73,8 +88,7 @@ recipes.get('/:recipeID/ingredients', (req, res, next) => {
 	})
 })
 
-//------------------------------------------------Postin stuff
-
+//------------------------------------------------Postin a new recipe
 // Recipes table
 recipes.post('/', (req, res, next) => {	
 	db.query(`
@@ -87,82 +101,91 @@ recipes.post('/', (req, res, next) => {
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
 		else {
+			res.locals.recipeID = results.insertId;
 			console.log(`Added recipe id ${results.insertId}`);	
-			res.send(results);
+			next();
 		}
 	})
 })
 
 // Steps table
-recipes.post('/:recipeID/steps', (req, res, next) => {
-	// Add handling for an array of dictionaries
+recipes.post('/', (req, res, next) => {
+	// Get steps array in correct format
+	let insertSteps = [];
+	for (s in req.body.steps) {
+		let step = req.body.steps[s];
+		insertSteps.push([`(
+			${res.locals.recipeID},
+			${step.step_number},
+			"${step.instructions}"
+		)`]);
+	}
+	insertSteps = insertSteps.join(', ');
+	
 	db.query(`
-		INSERT INTO steps (recipeID, step_number, instructions) VALUES (
-			"${req.params.recipeID}",
-			"${req.body.step_number}",
-			"${req.body.instructions}"
-		);
+		INSERT INTO steps (recipeID, step_number, instructions) VALUES ${insertSteps};
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
 		else {
-			console.log(`Added step id ${results.insertId}`)
-			res.send(results);
+			console.log(`Added ${results.affectedRows} steps.`)
+			next();
 		}
 	})
 })
 
-// Ingredients tables
-// Check if method is post, and if yes, check if the ingredient is in the ingredient table
-// Return the ingredient ID
-recipes.use('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
-	// Change the url to /:recipeID/ingredients
-	// Add handling for multiple ingredients
-	if (req.method=='POST') {
-		db.query(`
-			SELECT * FROM ingredients
-			WHERE ingredient_name = "${req.body.ingredient_name}";
-		`, (error, results, fields) => {
-			if (error) res.status(400).send(error);
-			else if (results.length < 1) {
-				// If not, add and get new ingredientID
-				db.query(`
-					INSERT INTO ingredients (ingredient_name) VALUES (
-						"${req.body.ingredient_name}"
-					);
-				`, (error, results, fields) => {
-					if (error) res.status(400).send(error);
-					else {
-						res.locals.ingredientID = results.insertId;
-						next();
-					}
-				})
-			} else {
-				// If yes, get ingredient
-				res.locals.ingredientID = results[0].ingredientID;
-				next();
-			}
-		})
-	}	
-})
-
-recipes.post('/:recipeID/steps/:stepNumber/ingredients', (req, res, next) => {
-	// Change url to /:recipeID/ingredients and just add step to the payload
-	// Add handling for multiple ingredients
+// Ingredients
+recipes.post('/', (req, res, next) => {
+	// Check all ingredients
+	let insertIngredients = [];
+	for (i in req.body.ingredients) {
+		let ingredient = req.body.ingredients[i];
+		insertIngredients.push([`("${ingredient.ingredient_name}")`])
+	}
+	insertIngredients = insertIngredients.join(', ');
+	
 	db.query(`
-		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
-		SELECT 
-			${req.params.recipeID},
-			steps.stepID,
-			${res.locals.ingredientID},
-			"${req.body.amount}"
-		FROM steps
-		WHERE steps.recipeID = ${req.params.recipeID}
-		AND steps.step_number = ${req.params.stepNumber};
+		INSERT INTO ingredients (ingredient_name)
+		VALUES ${insertIngredients}
+		ON DUPLICATE KEY UPDATE ingredient_name=ingredient_name;
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
-		else if (results.insertId.length <1) res.status(400).send('');
 		else {
-			res.send(results);
+			console.log(`Added ${results.affectedRows} new ingredients.`)
+			next();
+		}
+	})
+})
+
+// Ingredients_steps
+recipes.post('/', (req, res, next) => {
+	let ingredientsStepsLogic = [];
+	for (is in req.body.ingredients) {
+		let ingredient = req.body.ingredients[is]
+		ingredientsStepsLogic.push([`(
+			ingredients.ingredient_name="${ingredient.ingredient_name}" AND steps.step_number=${ingredient.ingredient_step}
+		)`])
+	}
+	ingredientsStepsLogic = ingredientsStepsLogic.join(' OR ');
+
+	// TODO HERE
+	// Figure out how to get the amount to match up with the ingredient. Maybe add
+	// amount as another thing pushed into the WHERE logic
+
+	db.query(`
+		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
+		SELECT
+			${res.locals.recipeID},
+			steps.stepID,
+			ingredients.ingredientID,
+			"${req.body.amount}"
+		FROM ingredients
+		JOIN steps on steps.recipeID=${res.locals.recipeID}
+		WHERE ${ingredientsStepsLogic};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else {
+			console.log(`Inserted ${results.affectedRows} ingredients for the recipe.`)
+			res.send(`Finished posting recipe ${res.locals.recipeID}`);
 		}
 	})
 })
@@ -212,7 +235,7 @@ recipes.delete('/:recipeID', [deleteAllIngredients, deleteAllSteps], (req, res, 
 })
 
 //- - - - - - - - - - - -> Delete an ingredient
-recipes.delete('/:recipeID/ingredients/:ingredientID', (req, res, next) => {
+recipes.delete('/:recipeID/ingredients/:ingredientName', (req, res, next) => {
 	db.query(`
 		DELETE FROM ingredients_steps
 		WHERE recipeID=${req.params.recipeID}
@@ -224,7 +247,7 @@ recipes.delete('/:recipeID/ingredients/:ingredientID', (req, res, next) => {
 })
 
 //- - - - - - - - - - - -> Delete a step
-recipes.delete('/:recipeID/steps/:stepID', [deleteIngredientsFromStep], (req, res, next) => {
+recipes.delete('/:recipeID/steps/:stepNumber', [deleteIngredientsFromStep], (req, res, next) => {
 	db.query(`
 		DELETE FROM steps
 		WHERE recipeID=${req.params.recipeID}
@@ -237,5 +260,56 @@ recipes.delete('/:recipeID/steps/:stepID', [deleteIngredientsFromStep], (req, re
 
 
 //----------------------------------------------------Updating Stuff
+// UPDATE table_name
+// SET column1=value1, column2=value2, ...
+// WHERE condition
+function parseBody (req, res, next) {
+	let updateFields = []
+	for (item in req.body) {
+		switch(item) {
+			case name:
+				updateFields.push(['name=${item}']);
+				break;
+			case difficulty:
+				updateFields.push(['difficulty=${item}']);
+				break;
+			case time:
+				updateFields.push(['time=${item}']);
+				break;
+			case description:
+				updateFields.push(['description=${item}']);
+				break;
+			case step_number:
+				updateFields.push(['step_number=${item}']);
+				break;
+			case instructions:
+				updateFields.push(['instructions=${item}']);
+				break;
+			case ingredient_name:
+				updateFields.push(['ingredient_name=${item}']);
+				break;
+			case amount:
+				updateFields.push(['amount=${item}']);
+				break;
+			case step_number:
+				updateFields.push(['step_number=${item}']);
+				break;
+		}
+
+	}
+	// Get IDs
+	// Join update fields on ', '
+	res.locals.updateFields = updateFields;
+}
+
+recipes.put(':recipeID', (req, res, next) => {
+	db.query(`
+		UPDATE recipes
+		SET ${res.locals.updateFields}
+		WHERE recipeID=${req.params.recipeID}
+	`, (error, results, fields) => {
+
+	})
+})
 
 module.exports = recipes;	
