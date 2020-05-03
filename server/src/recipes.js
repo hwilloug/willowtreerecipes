@@ -156,36 +156,60 @@ recipes.post('/', (req, res, next) => {
 	})
 })
 
-// Ingredients_steps
+// Temporary ingredients_amount table
 recipes.post('/', (req, res, next) => {
+	let ingredientAmountInsert = [];
+	for (ing in req.body.ingredients) {
+		let ingredient = req.body.ingredients[ing];
+		ingredientAmountInsert.push([`(${res.locals.recipeID},"${ingredient.ingredient_name}", "${ingredient.amount}")`])
+	}
+	ingredientAmountInsert = ingredientAmountInsert.join(', ')
+
 	let ingredientsStepsLogic = [];
 	for (is in req.body.ingredients) {
 		let ingredient = req.body.ingredients[is]
 		ingredientsStepsLogic.push([`(
-			ingredients.ingredient_name="${ingredient.ingredient_name}" AND steps.step_number=${ingredient.ingredient_step}
+			ingredients.ingredient_name="${ingredient.ingredient_name}" AND 
+			steps.step_number=${ingredient.ingredient_step} AND
+			ingredient_amounts.ingredient="${ingredient.ingredient_name}"
 		)`])
 	}
 	ingredientsStepsLogic = ingredientsStepsLogic.join(' OR ');
 
-	// TODO HERE
-	// Figure out how to get the amount to match up with the ingredient. Maybe add
-	// amount as another thing pushed into the WHERE logic
-
 	db.query(`
-		INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
-		SELECT
-			${res.locals.recipeID},
-			steps.stepID,
-			ingredients.ingredientID,
-			"${req.body.amount}"
-		FROM ingredients
-		JOIN steps on steps.recipeID=${res.locals.recipeID}
-		WHERE ${ingredientsStepsLogic};
+		CREATE TEMPORARY TABLE ingredient_amounts (
+			recipeID INT(11),
+			ingredient VARCHAR(20),
+			amount VARCHAR(20)
+		);
 	`, (error, results, fields) => {
 		if (error) res.status(400).send(error);
 		else {
-			console.log(`Inserted ${results.affectedRows} ingredients for the recipe.`)
-			res.send(`Finished posting recipe ${res.locals.recipeID}`);
+			db.query(`
+				INSERT INTO ingredient_amounts (recipeID, ingredient, amount) VALUES ${ingredientAmountInsert};
+			`, (error, results, fields) => {
+				if (error) res.status(400).send(error);
+				else {
+					db.query(`
+						INSERT INTO ingredients_steps (recipeID, stepID, ingredientID, amount)
+						SELECT
+							${res.locals.recipeID},
+							steps.stepID,
+							ingredients.ingredientID,
+							ingredient_amounts.amount
+						FROM ingredients
+						JOIN steps ON steps.recipeID=${res.locals.recipeID}
+						JOIN ingredient_amounts ON ingredient_amounts.recipeID=${res.locals.recipeID}
+						WHERE ${ingredientsStepsLogic};
+					`, (error, results, fields) => {
+						if (error) res.status(400).send(error);
+						else {
+							console.log(`Inserted ${results.affectedRows} ingredients for the recipe.`)
+							res.send(`Finished posting recipe ${res.locals.recipeID}`);
+						}
+					})
+				}
+			})
 		}
 	})
 })
