@@ -17,28 +17,18 @@ db.connect((err) =>{
 
 //-----------------------------------------------Checkin if stuff is there
 // Validate payload for put and post requests
-
-
-// Get IDs when needed
-recipes.use('/:recipeID/steps/:stepNumber', (req, res, next) => {
-	db.query(`
-		SELECT stepID FROM steps
-		WHERE recipeID=${req.params.recipeID}
-			AND step_number=${req.params.stepNumber}; 
-	`, (error, results, fields) => {
-		if (error) res.status(400).send(error);
-		else if (results.length < 1) res.status(404).send("Could not find the requested recipe's step.")
-		else {
-			res.locals.stepID = results[0].stepID;
-			next();
-		}
-	})
+recipes.get('/', (req, res, next) => {
+	res.locals.sort = "";
+	if (req.query.sortCategory && req.query.sortDirection) res.locals.sort = `ORDER BY ${req.query.sortCategory} ${req.query.sortDirection}`;
+	console.log(res.locals.sort);
+	next();
 })
+
 //---------------------------------------------Gettin stuff
 
 // Get all entries from recipes table
 recipes.get('/', (req, res, next) => {
-	db.query(`SELECT * FROM recipes;`,
+	db.query(`SELECT * FROM recipes ${res.locals.sort};`,
 		(error, results, fields) => {
 			if (error) res.status(400).send(error);
 			else res.send(results)
@@ -59,10 +49,9 @@ recipes.get('/:recipeID', (req, res, next) => {
 // Get the steps for a recipe
 recipes.get('/:recipeID/steps', (req, res, next) => {
 	db.query(`
-		SELECT step_number, instructions
-		FROM steps
+		SELECT * FROM steps
 		WHERE recipeID = ${req.params.recipeID}
-		ORDER BY step_number;`,
+		ORDER BY step_number ${req.body.sortDirection ? req.body.sortDirection : ""};`,
 	(error, results, fields) => {
 		if (error) res.status(400).send();
 		else if (results.length < 1) res.status(404).send(error);
@@ -73,8 +62,9 @@ recipes.get('/:recipeID/steps', (req, res, next) => {
 // Get the ingredients for a recipe
 recipes.get('/:recipeID/ingredients', (req, res, next) => {
 	db.query(`
-		SELECT ingredients.ingredient_name AS ingredient, 
-			ingredients_steps.amount AS amount,
+		SELECT ingredients_stepsID,
+			ingredients.ingredient_name, 
+			ingredients_steps.amount,
 			steps.step_number 
 		FROM ingredients_steps
 		JOIN ingredients ON ingredients_steps.ingredientID = ingredients.ingredientID
@@ -287,53 +277,144 @@ recipes.delete('/:recipeID/steps/:stepNumber', [deleteIngredientsFromStep], (req
 // UPDATE table_name
 // SET column1=value1, column2=value2, ...
 // WHERE condition
-function parseBody (req, res, next) {
-	let updateFields = []
-	for (item in req.body) {
-		switch(item) {
-			case name:
-				updateFields.push(['name=${item}']);
-				break;
-			case difficulty:
-				updateFields.push(['difficulty=${item}']);
-				break;
-			case time:
-				updateFields.push(['time=${item}']);
-				break;
-			case description:
-				updateFields.push(['description=${item}']);
-				break;
-			case step_number:
-				updateFields.push(['step_number=${item}']);
-				break;
-			case instructions:
-				updateFields.push(['instructions=${item}']);
-				break;
-			case ingredient_name:
-				updateFields.push(['ingredient_name=${item}']);
-				break;
-			case amount:
-				updateFields.push(['amount=${item}']);
-				break;
-			case step_number:
-				updateFields.push(['step_number=${item}']);
-				break;
-		}
-
-	}
-	// Get IDs
-	// Join update fields on ', '
-	res.locals.updateFields = updateFields;
-}
-
-recipes.put(':recipeID', (req, res, next) => {
+recipes.put('/:recipeID', (req, res, next) => {
 	db.query(`
 		UPDATE recipes
-		SET ${res.locals.updateFields}
-		WHERE recipeID=${req.params.recipeID}
+		SET name="${req.body.name}",
+			difficulty="${req.body.difficulty}",
+			time="${req.body.time}",
+			description="${req.body.description}"
+		WHERE id=${req.params.recipeID};
 	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else {
+			res.send(results);
+		}
+	})
+})
+/*
+recipes.put('/:recipeID/steps', (req, res, next) => {
+	// Check the number of steps compared to that of the db
+	// If less, delete
+	// If more, add
+	const putLength = req.body.length;	
 
+	db.query(`
+		SELECT COUNT(*) FROM steps
+		WHERE recipeID=${req.params.recipeID};
+	`, (error, results, fields) => {
+		if (error) res.status(400).send();
+		else {
+			const prevLength = parseInt(results);
+			if (prevLength > putLength) {
+				// Delete
+				var deleteSteps = [];
+				for (i=putLength; i<=prevLength; i++) {
+					deleteSteps.push(`stepNumber=${i}`);
+				}
+				deleteSteps = deleteSteps.join(' OR ');
+				db.query(`
+					DELETE FROM steps
+					WHERE recipeID=${req.params.recipeID}
+					AND (${deleteSteps});
+				`, (error, results, fields) => {
+					if (error) res.status(400).send();
+					else next();
+				})
+			} else if ( prevLength < putLength) {
+				// Insert
+			} else next();
+		}
 	})
 })
 
+recipes.put('/:recipeID/steps', (req, res, next) => {
+	// What about if the user adds a step while updating??
+	// There won't be a stepID yet...
+	// And what if they delete a step? That won't be reflected in the payload
+	let updateSteps = [];
+	for (s in req.body) {
+		let step = req.body[s];
+		updateSteps.push([`(
+			${req.params.stepID}, // WE DON'T HAVE THIS IN THE PARAMS UGH
+			${req.params.recipeID},
+			${step.step_number},
+			"${step.instructions}"
+		)`]);
+	}
+	updateSteps = updateSteps.join(', ');
+	
+	db.query(`
+		INSERT INTO steps (stepID, recipeID, step_number, instructions)
+		VALUES ${updateSteps}
+		ON DUPLICATE KEY UPDATE 
+			step_number=VALUES(recipeID),
+			instructions=VALUES(instructions);
+	`, (error, results, fields) => {
+		if (error) res.status(400).send(error);
+		else {
+			console.log(`Updated ${results.affectedRows} steps.`)
+			res.send(results);
+		}
+	})
+})
+
+recipes.put(':recipeID/ingredients', (req, res, next) => {
+    // Check all ingredients
+    let insertIngredients = [];
+    for (i in req.body) {
+        let ingredient = req.body[i];
+        insertIngredients.push([`("${ingredient.ingredient_name}")`])
+    }
+    insertIngredients = insertIngredients.join(', ');
+
+	// Check if the ingredient exists before moving on
+	db.query(`
+        INSERT INTO ingredients (ingredient_name)
+        VALUES ${insertIngredients}
+        ON DUPLICATE KEY UPDATE ingredient_name=ingredient_name;
+	`, (error, results, fields) => {
+		if (error) res.status(400).send();
+		else next();
+	})
+})
+
+recipes.put(':recipeID/ingredients', (req, res, next) => {
+	// Compare length of input vs number of ingredients
+	const putLength = req.body.length;
+	
+	db.query(`
+		SELECT COUNT(*) FROM ingredients_steps
+		WHERE recipeID=
+	`, (error, results, fields) => {
+		if (error) res.status(400).send();
+		else {
+			const prevLength = parseInt(results);
+			if (prevLength > putLength) {
+				
+			} else if { 
+				
+			} else next();
+		}
+	})
+})
+
+recipes.put(':recipeID/ingredients', (req, res, next) => {
+	// What about if the user adds an ingredient while updating??
+	// And what if they delete an ingredient? That won't be reflected in the payload
+	db.query(`
+		INSERT INTO ingredients_steps (ingredients_stepsID, recipeID, stepID, ingredientID, amount)
+		VALUES ${req.body}
+		ON DUPLICATE KEY UPDATE
+			stepID=VALUES(stepID),
+			ingredientID=VALUES(ingredientID),
+			amount=VALUES(amount);
+	`, (error, results, fields) => {
+		if (error) res.status(400).send();
+		else {
+			console.log(`Updated ${results.affectedRows} ingredients`)
+		}
+	})
+})
+*/
 module.exports = recipes;	

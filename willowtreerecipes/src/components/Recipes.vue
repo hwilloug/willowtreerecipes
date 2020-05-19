@@ -5,11 +5,26 @@
 		<div class='recipes-table'>
 			<table id='all-recipes'>
 				<tr>
-					<th>Name</th>
-					<th>Description</th>
-					<th>Difficulty</th>
-					<th>Time to Complete</th>
-					<th>Date Created</th>
+					<th @click="sortRecipes('name')">
+						Name
+						<img :src="imgSrc" id="sort-arrow" v-if="sortCategory=='name'" :class="{rotate180:sortDirection=='DESC'}"/>
+					</th>
+					<th @click="sortRecipes('description')">
+						Description
+						<img :src="imgSrc" id="sort-arrow" v-if="sortCategory=='description'" :class="{rotate180:sortDirection=='DESC'}"/>
+					</th>
+					<th @click="sortRecipes('difficulty')">
+						Difficulty
+						<img :src="imgSrc" id="sort-arrow" v-if="sortCategory=='difficulty'" :class="{rotate180:sortDirection=='DESC'}"/>
+					</th>
+					<th @click="sortRecipes('time')">
+						Time to Complete
+						<img :src="imgSrc" id="sort-arrow" v-if="sortCategory=='time'" :class="{rotate180:sortDirection=='DESC'}"/>
+					</th>
+					<th @click="sortRecipes('creation_date')">
+						Date Created
+						<img :src="imgSrc" id="sort-arrow" v-if="sortCategory=='creation_date'" :class="{rotate180:sortDirection=='DESC'}"/>
+					</th>
 				</tr>
 				<RecipesTableEntries
 					id='recipe-entry'
@@ -33,7 +48,10 @@
 	name: 'RecipesTable',
 	data() {
 		return {
-			allRecipes: [	]
+			allRecipes: [	],
+			sortCategory: "",
+			sortDirection: "",
+			imgSrc: require("../assets/sort_direction.png"),
 		}
 	},
 	components: {
@@ -50,6 +68,13 @@
 		},
 		addRecipe: () => {
 			router.push('new-recipe')
+		},
+		sortRecipes (category) {
+			this.sortCategory = category;
+			this.sortDirection = this.sortDirection == 'ASC' ? 'DESC' : 'ASC';
+			Recipes.loadRecipes(this.sortCategory, this.sortDirection).then ( response => {
+				this.allRecipes = response.data;
+			})
 		}
 	}
 }
@@ -73,6 +98,7 @@
 #all-recipes th {
 	background-color: #869D7A;
 	color: #EFE5FB;
+	cursor: pointer;
 }
 
 #recipe-entry {
@@ -93,5 +119,18 @@ button {
   cursor: pointer;
 	float: right;
 }
+
+#sort-arrow {
+	width: 10px;
+}
+
+.invisible {
+	visibility: hidden;
+}
+
+.rotate180 {
+	transform: rotate(180deg);
+}
+
 
 </style>

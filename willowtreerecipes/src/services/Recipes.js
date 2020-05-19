@@ -6,8 +6,10 @@ import Api from '@/services/Api'
 
 export default {
 	// Loads all recipes from the database
-	loadRecipes () {
-		return Api().get('/recipes');
+	loadRecipes (sortCategory, sortDirection) {
+		let url = `/recipes`;
+		if (sortCategory && sortDirection) url = url.concat(`?sortCategory=${sortCategory}&sortDirection=${sortDirection}`)
+		return Api().get(url);
 	},
 
 	// Loads a specific recipe from the database
