@@ -16,7 +16,7 @@
 			id='ingredients'
 			v-for='ingredient in ingredients'
 			:key='ingredient.ingredient'
-		>{{ ingredient.amount }} {{ ingredient.ingredient }}</li>
+		>{{ ingredient.amount }} {{ ingredient.ingredient_name }}</li>
 	</ul>
 	</aside>
 	<section>
@@ -32,7 +32,7 @@
 	</div>
 
 	<aside class='other-recipes'>
-		<h5>Other recpipes you may like:</h5>
+		<h5>Other recipes you may like:</h5>
 		<!-- TODO maybe include a couple random recipes here (new component?) -->
 	</aside>
 </div>

@@ -51,7 +51,7 @@ recipes.get('/:recipeID/steps', (req, res, next) => {
 	db.query(`
 		SELECT * FROM steps
 		WHERE recipeID = ${req.params.recipeID}
-		ORDER BY step_number ${req.body.sortDirection ? req.body.sortDirection : ""};`,
+		ORDER BY step_number;`,
 	(error, results, fields) => {
 		if (error) res.status(400).send();
 		else if (results.length < 1) res.status(404).send(error);

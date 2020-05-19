@@ -38,41 +38,27 @@ export default {
 			ingredientsArray.push({
 				ingredient_name: info[0],
 				amount: info[1],
-				step: info[2]
+				ingredient_step: info[2]
 			})
 		}
 
 		// Parse steps
 		steps = steps.split(/\r?\n/);
+		let stepsArray = []
+		for (let step in steps) {
+			stepsArray.push({
+				step_number: step+1,
+				instructions: steps[step]
+			})
+		}
 
 		return Api().post('/recipes', {
 			name: name,
 			difficulty: difficulty,
 			time: time,
 			description: description,
-		}).then((resp) => {
-			return new Promise ( (resolve, reject) => {
-				let steps_added = 0;
-				for (let s=0; s<steps.length; s++) {
-					Api().post(`/recipes/${resp.data.insertId}/steps`, {
-						step_number: s+1,
-						instructions: steps[s]
-					}).then(() => {
-						steps_added++
-						if (!resp.data.insertId) reject('recipeID is not defined');
-						if (steps_added == steps.length) {
-							resolve(resp.data.insertId);
-						}
-					})
-				}
-			})
-		}).then((resp) => {
-			for (let i=0; i<ingredientsArray.length; i++) {
-				Api().post(`/recipes/${resp}/steps/${ingredientsArray[i].step}/ingredients`, {
-					ingredient_name: ingredientsArray[i].ingredient_name,
-					amount: ingredientsArray[i].amount
-				}).then((resp) => console.log(resp));
-			}
+			steps: stepsArray,
+			ingredients: ingredientsArray
 		})
 	},
 }
