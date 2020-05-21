@@ -84,15 +84,12 @@
 	
 #all-recipes th, td {
 	padding: 15px;
+	border-collapse: collapse;
 }	
 
 .recipes-table {
 	width: 80%;
 	margin: auto;
-}
-
-#all-recipes {
-	border-collapse: collapse;
 }
 
 #all-recipes th {
@@ -109,7 +106,6 @@
 }
 
 #recipe-entry:hover {
-	border: 1px solid #E1D4B1;
 	background-color: #E1D4B1;
 	cursor: pointer;
 }
@@ -122,10 +118,6 @@ button {
 
 #sort-arrow {
 	width: 10px;
-}
-
-.invisible {
-	visibility: hidden;
 }
 
 .rotate180 {

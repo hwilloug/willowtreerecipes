@@ -1,5 +1,5 @@
 <template>
-	<tr>
+	<tr class='recipe-entry'>
 		<td>{{ recipe.name }}</td>
 		<td>{{ recipe.description }}</td>
 		<td>{{ recipe.difficulty }}</td>

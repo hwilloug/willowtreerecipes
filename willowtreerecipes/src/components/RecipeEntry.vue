@@ -34,6 +34,7 @@
 	<aside class='other-recipes'>
 		<h5>Other recipes you may like:</h5>
 		<!-- TODO maybe include a couple random recipes here (new component?) -->
+		<RandomRecipes id='random-recipes' :currentRecipe='recipeID' :numberOfRandomRecipes='3'></RandomRecipes>
 	</aside>
 </div>
 </template>
@@ -42,10 +43,14 @@
 <script>
 import Recipes from '@/services/Recipes'
 import router from '@/router/index'
+import RandomRecipes from './RandomRecipe.vue'
 
 export default {
 	name: 'RecipePage',
 	props: ['recipeID'],
+	components: {
+		RandomRecipes
+	},
 	data () {
 		return {
 			recipe: {},
@@ -146,4 +151,33 @@ section {
 	display: flex;
 	flex-direction: row;
 }
+
+#random-recipes {
+	border-collapse: collapse;
+	margin: auto;
+	width: 80%;
+}
+
+#random-recipes th {
+	background-color: #869D7A;
+	color: #EFE5FB;
+	padding: 5px;
+}
+
+.recipe-entry {
+	border: 1px solid #E1D4B1;
+	color: #8B5D33;
+	background-color: white;
+	text-align: center;
+}
+
+.recipe-entry td {
+	padding: 5px;
+}
+
+.recipe-entry:hover {
+	background-color: #E1D4B1;
+	cursor: pointer;
+}
+
 </style>
